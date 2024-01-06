@@ -1,25 +1,58 @@
-from flask import Blueprint, current_app, request
-import sqlite3 as sql
+from flask import Blueprint, request
+from databases import db
+from models.players import Stats, Players
 
 blueprint_players = Blueprint('blueprint_players', __name__, url_prefix='/players')
 
-@blueprint_players.route('/', methods=['GET', 'POST'])
+def player(data):
+  return  
+
+# def player_stats(data):
+#   return Stats(
+#       season = data['season'],
+#       appearaces = data['appearaces'],
+#       minutes_played = data['minutes_played'],
+#       saveds = data['saveds'],
+#       dorsal = data['dorsal'],
+#       total_tackless = data['total_tackless'],
+#       clean_sheets = data['clean_sheets'],
+#       goals = data['goals'],
+#       total_passes = data['total_passes'],
+#       goal_assists = data['goal_assists'],
+#       player_id = data['player_id'],
+#     )
+
+@blueprint_players.get('/')
 def get_all_players():
-  db = sql.connect(current_app.config['DB_PATH'])
-  if request.method == "POST":
-    appearaces = request.json['appearaces']
-    minutes_played = request.json['minutes_played']
-    saveds = request.json['saveds']
-    total_tackless = request.json['total_tackless']
-    clean_sheets = request.json['clean_sheets']
-    goals = request.json['goals']
-    total_passes = request.json['total_passes']
-    goal_assists = request.json['goal_assists']
-    data = request.json
-    db.execute('INSERT INTO stats (appearaces, minutes_played, saveds, total_tackless, clean_sheets, goals, total_passes, goal_assists) VALUES (?, ?, ?, ?, ?, ?, ?, ?)',
-                (appearaces, minutes_played, saveds, total_tackless, clean_sheets, goals, total_passes, goal_assists))
-    db.commit()
-    db.close()
-    return data
-  else:
-    return "get"
+  # player_stats = player_stats(request.json["stats"])
+  # return db.session.add([player_info, player_stats])
+  return 'Get all players'
+  
+@blueprint_players.post('/')
+def insert_player():
+  
+  #Body request parsed to JSON
+  data = request.json
+
+  #Building a Player model with request info
+  player_info = Players(
+      player_id = data['player_id'],
+      player_name = data['player_name'],
+      player_last_name = data['player_last_name'],
+      age = data['age'],
+      dorsal = data['dorsal'],
+      lastest_team = data['lastest_team'],
+      photo_shield_lastest_team = data.get('photo_shield_lastest_team', None),
+      photo = data['photo'],
+      incorporation_date = data['incorporation_date'],
+      birth_date = data['birth_date'],
+      nationality = data['nationality'],
+      position = data["position"]
+    )
+  
+  #Add to database
+  db.session.add(player_info)
+  db.session.commit()
+  
+  #Response to client
+  return "done, data from player {} {} added".format(data['player_name'], data['player_last_name'])
