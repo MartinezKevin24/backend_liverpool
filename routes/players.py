@@ -1,6 +1,7 @@
-from flask import Blueprint, request
+from flask import Blueprint, request, jsonify
 from databases import db
-from models.players import Stats, Players
+from models.players import Stats, Players, PlayerSchema
+from markupsafe import escape
 
 blueprint_players = Blueprint('blueprint_players', __name__, url_prefix='/players')
 
@@ -22,11 +23,38 @@ def player(data):
 #       player_id = data['player_id'],
 #     )
 
+@blueprint_players.put('/<id>')
+def update_player(id):
+  
+  #Find player in database with id
+  player = Players.query.filter_by(player_id = escape(id)).first()
+  
+  #Valdiate if player exist
+  if player:
+    #Iterate through all items in the request body.
+    for key, value in request.json.items():
+      #Validate if player has this attribute
+      if hasattr(player, key):
+        #Change that attributr
+        setattr(player, key, value)
+
+    #Add updated player to database
+    db.session.commit()
+    
+    #Return success message
+    return "done, data from player {} {} updated".format(player.player_name, player.player_last_name)
+  
+  else:
+    #Return failure message
+    return "player doesn't exist yet."
+
 @blueprint_players.get('/')
 def get_all_players():
-  # player_stats = player_stats(request.json["stats"])
-  # return db.session.add([player_info, player_stats])
-  return 'Get all players'
+  
+  allPlayers = Players.query.all()
+  result = PlayerSchema().dump(allPlayers, many=True)
+  
+  return result
   
 @blueprint_players.post('/')
 def insert_player():

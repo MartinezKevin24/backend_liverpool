@@ -1,8 +1,16 @@
 from flask import Blueprint, request
 from databases import db
-from models.players import Stats
+from models.players import Stats, StatSchema
 
 blueprint_stats = Blueprint('blueprint_stats', __name__, url_prefix='/stats')
+
+@blueprint_stats.get('/')
+def get_all_players():
+  
+  allStats = Stats.query.all()
+  result = StatSchema().dump(allStats, many=True)
+  
+  return result
 
 @blueprint_stats.post('/')
 def insert_stats():
