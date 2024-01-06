@@ -1,4 +1,5 @@
 import os
 
 class Config:
-  DB_PATH = './databases/liverpool.db'
+  SQLALCHEMY_DATABASE_URI = 'sqlite:///liverpool.db'
+  SQLALCHEMY_TRACK_MODIFICATIONS = False
