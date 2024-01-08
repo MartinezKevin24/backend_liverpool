@@ -15,6 +15,16 @@ class Stats(db.Model):
   goals: Mapped[int] = mapped_column(Integer, nullable=True)
   total_passes: Mapped[int] = mapped_column(Integer, nullable=True)
   goal_assists: Mapped[int] = mapped_column(Integer, nullable=True)
+  successful_dribbles: Mapped[int] = mapped_column(Integer, nullable=True)
+  tackles_won: Mapped[int] = mapped_column(Integer, nullable=True)
+  total_shots: Mapped[int] = mapped_column(Integer, nullable=True)
+  interceptions: Mapped[int] = mapped_column(Integer, nullable=True)
+  yellow_cards: Mapped[int] = mapped_column(Integer, nullable=True)
+  red_cards: Mapped[int] = mapped_column(Integer, nullable=True)
+  foul_conceded: Mapped[int] = mapped_column(Integer, nullable=True)
+  starts: Mapped[int] = mapped_column(Integer, nullable=True)
+  substituted_on: Mapped[int] = mapped_column(Integer, nullable=True)
+  season_number: Mapped[int] = mapped_column(Integer, nullable=False)
   player_id: Mapped[int] = mapped_column(ForeignKey("players.player_id"), nullable=False)
   
   def __str__(self):
@@ -55,6 +65,7 @@ class PlayerSchema(Schema):
   position = fields.Str()
 
 class StatSchema(Schema):
+  stat_id = fields.Int()
   season = fields.Str()
   appearaces = fields.Int() 
   minutes_played = fields.Int() 
@@ -65,3 +76,14 @@ class StatSchema(Schema):
   total_passes = fields.Int()  
   goal_assists = fields.Int() 
   player_id = fields.Str()
+  successful_dribbles = fields.Int()
+  tackles_won = fields.Int()
+  total_shots = fields.Int()
+  interceptions = fields.Int()
+  yellow_cards = fields.Int()
+  red_cards = fields.Int()
+  foul_conceded = fields.Int()
+  starts = fields.Int()
+  substituted_on = fields.Int()
+  season_number = fields.Int()
+  
