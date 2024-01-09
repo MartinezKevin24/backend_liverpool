@@ -3,6 +3,7 @@ from databases import db
 from models.players import Stats, StatSchema
 from markupsafe import escape
 import collections.abc
+from sqlalchemy import delete
 
 blueprint_stats = Blueprint('blueprint_stats', __name__, url_prefix='/stats')
 
@@ -61,26 +62,71 @@ def insert_stats():
 @blueprint_stats.put('/<id>')
 def update_stat(id):
   
-  print(id)
+  #Find Stat in database with id
+  stat = db.get_or_404(Stats, id)
+
+  #Iterate through all items in the request body.
+  for key, value in request.json.items():
+    #Validate if player has this attribute
+    if hasattr(stat, key):
+      #Change that attribute
+      setattr(stat, key, value)
+
+  #Add updated player to database
+  db.session.commit()
+  
+  #Return success message
+  return "done, data from stat id {} season {} updated".format(stat.stat_id, stat.season)
+  
+@blueprint_stats.delete('/<id>/delete')
+def delete_stat(id):
   
   #Find Stat in database with id
-  stat = Stats.query.filter_by(stat_id = escape(id)).first()
+  stat = db.get_or_404(Stats, escape(id))
   
-  #Valdiate if player exist
-  if stat:
-    #Iterate through all items in the request body.
-    for key, value in request.json.items():
-      #Validate if player has this attribute
-      if hasattr(stat, key):
-        #Change that attribute
-        setattr(stat, key, value)
+  #Delete from database
+  db.session.delete(stat)
+  db.session.commit()
+  
+  #Return success message
+  return "success, stat deleted"
 
-    #Add updated player to database
-    db.session.commit()
-    
-    #Return success message
-    return "done, data from stat id {} season {} updated".format(stat.stat_id, stat.season)
+@blueprint_stats.post('/delete/')
+def delete_stats():
   
+  #Body request parsed to JSON
+  body = request.json
+  
+  if not isinstance(body, collections.abc.Sequence):
+    return "Data format is not valid"
+  
+  #Iterate body request
+  for stat in body:
+    
+    #Search stat with id column
+    stat = db.get_or_404(Stats, stat)
+    
+    #Delete from database one by one
+    db.session.delete(stat)
+    db.session.commit()
+  
+  #Return success message
+  return"Success"
+
+@blueprint_stats.delete('/<player_id>/alldelete/')
+def delete_all_stats(player_id):
+  
+  #Search for a row with row with the value of the entered player_id parameter
+  result = db.session.query(Stats).filter(Stats.player_id == escape(player_id)).first()
+  
+  #Validate if at least one row exist
+  if result != None:
+    #Delete all rows with that player_id parameter
+    db.session.execute(delete(Stats).where(Stats.player_id == escape(player_id)))
+    db.session.commit()
+    #Return success message
+    return "All Stats deleted from {}".format(escape(player_id))
+  
+  #Return failure message
   else:
-    #Return failure message
-    return "Stat doesn't exist yet."
+    return "Stats for {} not exist".format(escape(player_id)) 
